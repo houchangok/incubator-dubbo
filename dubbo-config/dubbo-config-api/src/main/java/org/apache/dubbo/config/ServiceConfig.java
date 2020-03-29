@@ -332,6 +332,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
 
         if (shouldDelay()) {
+            //是否采用延迟暴露
             delayExportExecutor.schedule(this::doExport, delay, TimeUnit.MILLISECONDS);
         } else {
             doExport();

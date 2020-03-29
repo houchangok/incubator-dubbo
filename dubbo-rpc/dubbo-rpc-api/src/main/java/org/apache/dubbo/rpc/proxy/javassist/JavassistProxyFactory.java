@@ -35,15 +35,28 @@ public class JavassistProxyFactory extends AbstractProxyFactory {
         return (T) Proxy.getProxy(interfaces).newInstance(new InvokerInvocationHandler(invoker));
     }
 
+
+    /**
+     * 当调用getInvoker方法时，首先执行的是proxyFactory的适配器类getInvoker方法，
+     * 其内部会根据url里面的proxy的类型选择具体的代理工厂
+     *
+     * @param proxy
+     * @param type
+     * @param url
+     * @param <T>
+     * @return
+     */
     @Override
     public <T> Invoker<T> getInvoker(T proxy, Class<T> type, URL url) {
         // TODO Wrapper cannot handle this scenario correctly: the classname contains '$'
+        //把服务实现类转换成wrapper类是为了减少反射调用的性能开销
         final Wrapper wrapper = Wrapper.getWrapper(proxy.getClass().getName().indexOf('$') < 0 ? proxy.getClass() : type);
         return new AbstractProxyInvoker<T>(proxy, type, url) {
             @Override
             protected Object doInvoke(T proxy, String methodName,
                                       Class<?>[] parameterTypes,
                                       Object[] arguments) throws Throwable {
+                //委托给接口的具体实现类进行方法调用
                 return wrapper.invokeMethod(proxy, methodName, parameterTypes, arguments);
             }
         };
